@@ -906,7 +906,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGrey6,
+      backgroundColor: CupertinoColors.white,
       navigationBar: CupertinoNavigationBar(
         middle: const Text(
           "Edit Parking Note",
@@ -915,7 +915,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
             fontSize: 17,
           ),
         ),
-        backgroundColor: CupertinoColors.systemBackground,
+        backgroundColor: CupertinoColors.white,
         border: const Border(
           bottom: BorderSide(
             color: CupertinoColors.separator,

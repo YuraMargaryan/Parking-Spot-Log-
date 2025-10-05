@@ -137,33 +137,6 @@ class _SettingScreenState extends State<SettingScreen>
                       ),
                     ],
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  _buildSettingsSection(
-                    title: '🚙 About App',
-                    children: [
-                      _buildAnimatedSettingsTile(
-                        context: context,
-                        icon: CupertinoIcons.info_circle_fill,
-                        title: 'App Version',
-                        subtitle: 'Parking Spot Log v1.0.0',
-                        delay: 400,
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 12),
-                      _buildAnimatedSettingsTile(
-                        context: context,
-                        icon: CupertinoIcons.location_fill,
-                        title: 'About Program',
-                        subtitle: 'Convenient app for tracking parking spots',
-                        delay: 500,
-                        onTap: () => _showAboutDialog(),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -480,30 +453,6 @@ class _SettingScreenState extends State<SettingScreen>
     }
   }
 
-  void _showAboutDialog() {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('🚗 About App'),
-        content: const Column(
-          children: [
-            SizedBox(height: 16),
-            Text('Parking Spot Log v1.0.0'),
-            SizedBox(height: 8),
-            Text('Convenient app for tracking parking spots.'),
-            SizedBox(height: 8),
-            Text('Never lose your parking spot!'),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Close'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 
