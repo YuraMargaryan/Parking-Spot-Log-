@@ -3,7 +3,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:parking_spot_log/screen/jurnal/jurnal_screen.dart';
 import 'package:parking_spot_log/screen/navigation/navigation_screen.dart';
-import 'package:parking_spot_log/screen/note/note_screen.dart';
 import 'package:parking_spot_log/screen/push/push_screen.dart';
 import 'package:parking_spot_log/screen/setting/settings_screen.dart';
 import 'package:parking_spot_log/core/database/database.dart';
@@ -24,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
     JurnalScreen(),
     PushScreen(),
     MapScreen(db: _db),
-    NoteScreen(),
     SettingScreen()
   ];
 
@@ -174,41 +172,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       : null,
                 ),
                 child: Icon(
-                  CupertinoIcons.doc_text_fill,
-                  color: _selectedIndex == 3 
-                      ? CupertinoColors.white 
-                      : CupertinoColors.systemGrey,
-                  size: 24,
-                ),
-              ),
-              label: 'Notes',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  gradient: _selectedIndex == 4 
-                      ? LinearGradient(
-                          colors: [
-                            CupertinoColors.systemYellow,
-                            CupertinoColors.systemOrange,
-                          ],
-                        )
-                      : null,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: _selectedIndex == 4 
-                      ? [
-                          BoxShadow(
-                            color: CupertinoColors.systemYellow.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Icon(
                   CupertinoIcons.settings,
-                  color: _selectedIndex == 4 
+                  color: _selectedIndex == 3 
                       ? CupertinoColors.white 
                       : CupertinoColors.systemGrey,
                   size: 24,

@@ -30,6 +30,11 @@ class TableMap extends Table{
 
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
+  
+  // Поля для напоминаний
+  DateTimeColumn get reminderDateTime => dateTime().nullable()();
+  TextColumn get reminderMessage => text().nullable()();
+  BoolColumn get isReminderActive => boolean().withDefault(const Constant(false))();
 
 }
 
@@ -45,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
  @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
        // ---- Journal CRUD ----
  Future <int> addJournal(TableJournalCompanion entry) =>
@@ -99,7 +104,16 @@ class AppDatabase extends _$AppDatabase {
  Future<int>  deleteNote (int id) =>
       (delete(tableNote)..where((i)=> i.id.equals(id))).go();
 
+      // ---- Map Reminder Methods ----
+ Future<void> updateMapReminder(int id, DateTime? reminderDateTime, String? reminderMessage, bool isActive) =>
+      (update(tableMap)..where((i)=> i.id.equals(id))).write(TableMapCompanion(
+        reminderDateTime: Value(reminderDateTime),
+        reminderMessage: Value(reminderMessage),
+        isReminderActive: Value(isActive),
+      ));
 
+ Future<List<TableMapData>> getActiveReminders() =>
+      (select(tableMap)..where((i)=> i.isReminderActive.equals(true))).get();
 
 }
 LazyDatabase _openConnection() {

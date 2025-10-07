@@ -309,8 +309,12 @@ _formatDate(DateTime date) => DateFormat('dd.MM.yyyy').format(date);
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: CupertinoColors.systemGrey6,
+                                  color: CupertinoColors.systemYellow.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: CupertinoColors.systemYellow.withOpacity(0.3),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -318,11 +322,11 @@ _formatDate(DateTime date) => DateFormat('dd.MM.yyyy').format(date);
                                       width: 24,
                                       height: 24,
                                       decoration: BoxDecoration(
-                                        color: CupertinoColors.systemGrey,
+                                        color: CupertinoColors.systemYellow,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Icon(
-                                        CupertinoIcons.info,
+                                        CupertinoIcons.doc_text,
                                         size: 12,
                                         color: CupertinoColors.white,
                                       ),
@@ -334,7 +338,7 @@ _formatDate(DateTime date) => DateFormat('dd.MM.yyyy').format(date);
                                         style: const TextStyle(
                                           fontSize: 14,
                                           color: CupertinoColors.label,
-                                          fontWeight: FontWeight.w400,
+                                          fontWeight: FontWeight.w500,
                                           letterSpacing: -0.08,
                                         ),
                                       ),
@@ -430,17 +434,10 @@ class _AddRentalScreenState extends State<AddRentalScreen> {
       }
     }
     
-    // Conditions validation
-    if (conditionsController.text.trim().isEmpty) {
-      setState(() {
-        conditionsError = 'Enter parking conditions';
-      });
-      isValid = false;
-    } else {
-      setState(() {
-        conditionsError = null;
-      });
-    }
+    // Conditions validation (optional)
+    setState(() {
+      conditionsError = null;
+    });
     
     return isValid;
   }
@@ -600,7 +597,7 @@ class _AddRentalScreenState extends State<AddRentalScreen> {
               
               // Conditions
               _buildIOSTextField(
-                label: "Parking Conditions",
+                label: "Notes (optional)",
                 controller: conditionsController,
                 icon: CupertinoIcons.doc_text,
                 errorText: conditionsError,

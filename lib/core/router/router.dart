@@ -43,10 +43,10 @@ class AppRouter extends RootStackRouter {
       page: MapRoute.page,
     ),
     
-    // Заметки о парковке
-    AutoRoute(
-      page: NoteRoute.page,
-    ),
+    // Заметки о парковке (теперь интегрированы в журнал)
+    // AutoRoute(
+    //   page: NoteRoute.page,
+    // ),
     
     // Уведомления и напоминания
     AutoRoute(

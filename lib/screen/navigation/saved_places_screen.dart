@@ -1,5 +1,113 @@
 import 'package:flutter/cupertino.dart';
 import 'package:parking_spot_log/core/database/database.dart';
+import 'package:parking_spot_log/screen/push/notification_service.dart';
+
+// Helper methods for date and time pickers
+Future<DateTime?> showCupertinoDatePicker({
+  required BuildContext context,
+  required DateTime initialDateTime,
+  DateTime? minimumDate,
+  DateTime? maximumDate,
+}) async {
+  DateTime selectedDate = initialDateTime;
+  
+  // Исправляем проблему с миллисекундами
+  DateTime effectiveMinimumDate = minimumDate ?? DateTime(1900);
+  DateTime effectiveInitialDateTime = initialDateTime;
+  
+  if (effectiveInitialDateTime.isBefore(effectiveMinimumDate)) {
+    effectiveInitialDateTime = effectiveMinimumDate;
+  }
+  
+  final result = await showCupertinoModalPopup<DateTime>(
+    context: context,
+    builder: (context) => Container(
+      height: 350,
+      color: CupertinoColors.systemBackground,
+      child: Column(
+        children: [
+          Container(
+            height: 50,
+            color: CupertinoColors.systemGrey6,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                CupertinoButton(
+                  child: const Text('Done'),
+                  onPressed: () => Navigator.of(context).pop(selectedDate),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: CupertinoDatePicker(
+              mode: CupertinoDatePickerMode.date,
+              initialDateTime: effectiveInitialDateTime,
+              minimumDate: minimumDate,
+              maximumDate: maximumDate,
+              onDateTimeChanged: (date) {
+                selectedDate = date;
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  
+  return result;
+}
+
+Future<DateTime?> showCupertinoTimePicker({
+  required BuildContext context,
+  required DateTime initialDateTime,
+}) async {
+  DateTime selectedTime = initialDateTime;
+  
+  final result = await showCupertinoModalPopup<DateTime>(
+    context: context,
+    builder: (context) => Container(
+      height: 350,
+      color: CupertinoColors.systemBackground,
+      child: Column(
+        children: [
+          Container(
+            height: 50,
+            color: CupertinoColors.systemGrey6,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                CupertinoButton(
+                  child: const Text('Done'),
+                  onPressed: () => Navigator.of(context).pop(selectedTime),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: CupertinoDatePicker(
+              mode: CupertinoDatePickerMode.time,
+              initialDateTime: initialDateTime,
+              onDateTimeChanged: (time) {
+                selectedTime = time;
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  
+  return result;
+}
 
 class SavedPlacesScreen extends StatefulWidget {
   final AppDatabase db;
@@ -44,6 +152,12 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
 
   Future<void> _deletePlace(TableMapData place) async {
     try {
+      // Отменяем уведомление при удалении места
+      if (place.isReminderActive) {
+        final notificationService = NotificationServiceIOS();
+        await notificationService.cancel(place.id);
+      }
+      
       await widget.db.deleteMap(place.id);
       await _loadPlaces();
       // Notify parent screen about deletion
@@ -75,6 +189,151 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  // Show reminder management dialog
+  void _showReminderDialog(TableMapData place) {
+    final reminderMessageController = TextEditingController(text: place.reminderMessage ?? '');
+    DateTime? selectedReminderDateTime = place.reminderDateTime;
+    bool isReminderEnabled = place.isReminderActive;
+
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => CupertinoAlertDialog(
+          title: Text('🔔 Reminder for ${place.name ?? 'Place'}'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                // Переключатель напоминания
+                Row(
+                  children: [
+                    const Icon(
+                      CupertinoIcons.bell_fill,
+                      color: CupertinoColors.systemYellow,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Enable Reminder'),
+                    const Spacer(),
+                    CupertinoSwitch(
+                      value: isReminderEnabled,
+                      onChanged: (value) {
+                        setState(() {
+                          isReminderEnabled = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                if (isReminderEnabled) ...[
+                  const SizedBox(height: 12),
+                  CupertinoTextField(
+                    controller: reminderMessageController,
+                    placeholder: 'Reminder message (optional)',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 12),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () async {
+                      final now = DateTime.now();
+                      final selectedDate = await showCupertinoDatePicker(
+                        context: context,
+                        initialDateTime: selectedReminderDateTime ?? now.add(const Duration(hours: 1)),
+                        minimumDate: now,
+                        maximumDate: now.add(const Duration(days: 365)),
+                      );
+                      if (selectedDate != null) {
+                        final selectedTime = await showCupertinoTimePicker(
+                          context: context,
+                          initialDateTime: selectedReminderDateTime ?? selectedDate,
+                        );
+                        if (selectedTime != null) {
+                          setState(() {
+                            selectedReminderDateTime = DateTime(
+                              selectedDate.year,
+                              selectedDate.month,
+                              selectedDate.day,
+                              selectedTime.hour,
+                              selectedTime.minute,
+                            );
+                          });
+                        }
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemYellow.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: CupertinoColors.systemYellow.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        selectedReminderDateTime != null
+                            ? 'Reminder: ${selectedReminderDateTime!.day}/${selectedReminderDateTime!.month}/${selectedReminderDateTime!.year} at ${selectedReminderDateTime!.hour.toString().padLeft(2, '0')}:${selectedReminderDateTime!.minute.toString().padLeft(2, '0')}'
+                            : 'Select reminder date & time',
+                        style: const TextStyle(
+                          color: CupertinoColors.systemYellow,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Save'),
+              onPressed: () async {
+                try {
+                  final notificationService = NotificationServiceIOS();
+                  
+                  // Отменяем старое уведомление
+                  await notificationService.cancel(place.id);
+                  
+                  // Обновляем напоминание в базе данных
+                  await widget.db.updateMapReminder(
+                    place.id,
+                    isReminderEnabled ? selectedReminderDateTime : null,
+                    isReminderEnabled ? reminderMessageController.text : null,
+                    isReminderEnabled,
+                  );
+                  
+                  // Если напоминание активно, планируем новое уведомление
+                  if (isReminderEnabled && selectedReminderDateTime != null) {
+                    await notificationService.scheduleAt(
+                      id: place.id,
+                      title: '🚗 Parking Spot Reminder',
+                      body: reminderMessageController.text.isNotEmpty 
+                          ? reminderMessageController.text 
+                          : 'Reminder for parking spot: ${place.name}',
+                      dateTime: selectedReminderDateTime!,
+                    );
+                  }
+                  
+                  await _loadPlaces();
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  print('Error updating reminder: $e');
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -164,7 +423,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                         padding: EdgeInsets.zero,
                         onPressed: () => widget.onPlaceSelected(place),
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(15),
                           child: Row(
                             children: [
                               // Иконка места парковки
@@ -227,6 +486,28 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                                         color: CupertinoColors.tertiaryLabel,
                                       ),
                                     ),
+                                    if (place.isReminderActive && place.reminderDateTime != null) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            CupertinoIcons.bell_fill,
+                                            color: CupertinoColors.systemYellow,
+                                            size: 12,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Reminder: ${place.reminderDateTime!.day}/${place.reminderDateTime!.month}/${place.reminderDateTime!.year} at ${place.reminderDateTime!.hour.toString().padLeft(2, '0')}:${place.reminderDateTime!.minute.toString().padLeft(2, '0')}',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: CupertinoColors.systemYellow,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10,),
+                                        ],
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -237,8 +518,8 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                                 minSize: 0,
                                 onPressed: () => widget.onPlaceSelected(place),
                                 child: Container(
-                                  width: 36,
-                                  height: 36,
+                                  width: 30,
+                                  height: 30,
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
@@ -260,7 +541,31 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                                   child: const Icon(
                                     CupertinoIcons.location_fill,
                                     color: CupertinoColors.white,
-                                    size: 18,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Кнопка управления напоминанием
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                minSize: 0,
+                                onPressed: () => _showReminderDialog(place),
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: place.isReminderActive 
+                                        ? CupertinoColors.systemYellow 
+                                        : CupertinoColors.systemGrey3,
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.bell_fill,
+                                    color: place.isReminderActive 
+                                        ? CupertinoColors.white 
+                                        : CupertinoColors.systemGrey,
+                                    size: 16,
                                   ),
                                 ),
                               ),
@@ -271,8 +576,8 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                                 minSize: 0,
                                 onPressed: () => _showDeleteConfirmation(place),
                                 child: Container(
-                                  width: 36,
-                                  height: 36,
+                                  width: 30,
+                                  height: 30,
                                   decoration: BoxDecoration(
                                     color: CupertinoColors.systemRed,
                                     borderRadius: BorderRadius.circular(18),

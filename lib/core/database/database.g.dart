@@ -717,6 +717,44 @@ class $TableMapTable extends TableMap
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _reminderDateTimeMeta = const VerificationMeta(
+    'reminderDateTime',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reminderDateTime =
+      GeneratedColumn<DateTime>(
+        'reminder_date_time',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _reminderMessageMeta = const VerificationMeta(
+    'reminderMessage',
+  );
+  @override
+  late final GeneratedColumn<String> reminderMessage = GeneratedColumn<String>(
+    'reminder_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isReminderActiveMeta = const VerificationMeta(
+    'isReminderActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isReminderActive = GeneratedColumn<bool>(
+    'is_reminder_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_reminder_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -724,6 +762,9 @@ class $TableMapTable extends TableMap
     address,
     latitude,
     longitude,
+    reminderDateTime,
+    reminderMessage,
+    isReminderActive,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -770,6 +811,33 @@ class $TableMapTable extends TableMap
     } else if (isInserting) {
       context.missing(_longitudeMeta);
     }
+    if (data.containsKey('reminder_date_time')) {
+      context.handle(
+        _reminderDateTimeMeta,
+        reminderDateTime.isAcceptableOrUnknown(
+          data['reminder_date_time']!,
+          _reminderDateTimeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_message')) {
+      context.handle(
+        _reminderMessageMeta,
+        reminderMessage.isAcceptableOrUnknown(
+          data['reminder_message']!,
+          _reminderMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_reminder_active')) {
+      context.handle(
+        _isReminderActiveMeta,
+        isReminderActive.isAcceptableOrUnknown(
+          data['is_reminder_active']!,
+          _isReminderActiveMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -799,6 +867,18 @@ class $TableMapTable extends TableMap
         DriftSqlType.double,
         data['${effectivePrefix}longitude'],
       )!,
+      reminderDateTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reminder_date_time'],
+      ),
+      reminderMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reminder_message'],
+      ),
+      isReminderActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_reminder_active'],
+      )!,
     );
   }
 
@@ -814,12 +894,18 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
   final String address;
   final double latitude;
   final double longitude;
+  final DateTime? reminderDateTime;
+  final String? reminderMessage;
+  final bool isReminderActive;
   const TableMapData({
     required this.id,
     this.name,
     required this.address,
     required this.latitude,
     required this.longitude,
+    this.reminderDateTime,
+    this.reminderMessage,
+    required this.isReminderActive,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -831,6 +917,13 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
     map['address'] = Variable<String>(address);
     map['latitude'] = Variable<double>(latitude);
     map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || reminderDateTime != null) {
+      map['reminder_date_time'] = Variable<DateTime>(reminderDateTime);
+    }
+    if (!nullToAbsent || reminderMessage != null) {
+      map['reminder_message'] = Variable<String>(reminderMessage);
+    }
+    map['is_reminder_active'] = Variable<bool>(isReminderActive);
     return map;
   }
 
@@ -841,6 +934,13 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
       address: Value(address),
       latitude: Value(latitude),
       longitude: Value(longitude),
+      reminderDateTime: reminderDateTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderDateTime),
+      reminderMessage: reminderMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderMessage),
+      isReminderActive: Value(isReminderActive),
     );
   }
 
@@ -855,6 +955,11 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
       address: serializer.fromJson<String>(json['address']),
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
+      reminderDateTime: serializer.fromJson<DateTime?>(
+        json['reminderDateTime'],
+      ),
+      reminderMessage: serializer.fromJson<String?>(json['reminderMessage']),
+      isReminderActive: serializer.fromJson<bool>(json['isReminderActive']),
     );
   }
   @override
@@ -866,6 +971,9 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
       'address': serializer.toJson<String>(address),
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
+      'reminderDateTime': serializer.toJson<DateTime?>(reminderDateTime),
+      'reminderMessage': serializer.toJson<String?>(reminderMessage),
+      'isReminderActive': serializer.toJson<bool>(isReminderActive),
     };
   }
 
@@ -875,12 +983,22 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
     String? address,
     double? latitude,
     double? longitude,
+    Value<DateTime?> reminderDateTime = const Value.absent(),
+    Value<String?> reminderMessage = const Value.absent(),
+    bool? isReminderActive,
   }) => TableMapData(
     id: id ?? this.id,
     name: name.present ? name.value : this.name,
     address: address ?? this.address,
     latitude: latitude ?? this.latitude,
     longitude: longitude ?? this.longitude,
+    reminderDateTime: reminderDateTime.present
+        ? reminderDateTime.value
+        : this.reminderDateTime,
+    reminderMessage: reminderMessage.present
+        ? reminderMessage.value
+        : this.reminderMessage,
+    isReminderActive: isReminderActive ?? this.isReminderActive,
   );
   TableMapData copyWithCompanion(TableMapCompanion data) {
     return TableMapData(
@@ -889,6 +1007,15 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
       address: data.address.present ? data.address.value : this.address,
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      reminderDateTime: data.reminderDateTime.present
+          ? data.reminderDateTime.value
+          : this.reminderDateTime,
+      reminderMessage: data.reminderMessage.present
+          ? data.reminderMessage.value
+          : this.reminderMessage,
+      isReminderActive: data.isReminderActive.present
+          ? data.isReminderActive.value
+          : this.isReminderActive,
     );
   }
 
@@ -899,13 +1026,25 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
           ..write('name: $name, ')
           ..write('address: $address, ')
           ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude')
+          ..write('longitude: $longitude, ')
+          ..write('reminderDateTime: $reminderDateTime, ')
+          ..write('reminderMessage: $reminderMessage, ')
+          ..write('isReminderActive: $isReminderActive')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, address, latitude, longitude);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    address,
+    latitude,
+    longitude,
+    reminderDateTime,
+    reminderMessage,
+    isReminderActive,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -914,7 +1053,10 @@ class TableMapData extends DataClass implements Insertable<TableMapData> {
           other.name == this.name &&
           other.address == this.address &&
           other.latitude == this.latitude &&
-          other.longitude == this.longitude);
+          other.longitude == this.longitude &&
+          other.reminderDateTime == this.reminderDateTime &&
+          other.reminderMessage == this.reminderMessage &&
+          other.isReminderActive == this.isReminderActive);
 }
 
 class TableMapCompanion extends UpdateCompanion<TableMapData> {
@@ -923,12 +1065,18 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
   final Value<String> address;
   final Value<double> latitude;
   final Value<double> longitude;
+  final Value<DateTime?> reminderDateTime;
+  final Value<String?> reminderMessage;
+  final Value<bool> isReminderActive;
   const TableMapCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.address = const Value.absent(),
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
+    this.reminderDateTime = const Value.absent(),
+    this.reminderMessage = const Value.absent(),
+    this.isReminderActive = const Value.absent(),
   });
   TableMapCompanion.insert({
     this.id = const Value.absent(),
@@ -936,6 +1084,9 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
     required String address,
     required double latitude,
     required double longitude,
+    this.reminderDateTime = const Value.absent(),
+    this.reminderMessage = const Value.absent(),
+    this.isReminderActive = const Value.absent(),
   }) : address = Value(address),
        latitude = Value(latitude),
        longitude = Value(longitude);
@@ -945,6 +1096,9 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
     Expression<String>? address,
     Expression<double>? latitude,
     Expression<double>? longitude,
+    Expression<DateTime>? reminderDateTime,
+    Expression<String>? reminderMessage,
+    Expression<bool>? isReminderActive,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -952,6 +1106,9 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
       if (address != null) 'address': address,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (reminderDateTime != null) 'reminder_date_time': reminderDateTime,
+      if (reminderMessage != null) 'reminder_message': reminderMessage,
+      if (isReminderActive != null) 'is_reminder_active': isReminderActive,
     });
   }
 
@@ -961,6 +1118,9 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
     Value<String>? address,
     Value<double>? latitude,
     Value<double>? longitude,
+    Value<DateTime?>? reminderDateTime,
+    Value<String?>? reminderMessage,
+    Value<bool>? isReminderActive,
   }) {
     return TableMapCompanion(
       id: id ?? this.id,
@@ -968,6 +1128,9 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
       address: address ?? this.address,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      reminderDateTime: reminderDateTime ?? this.reminderDateTime,
+      reminderMessage: reminderMessage ?? this.reminderMessage,
+      isReminderActive: isReminderActive ?? this.isReminderActive,
     );
   }
 
@@ -989,6 +1152,15 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
     if (longitude.present) {
       map['longitude'] = Variable<double>(longitude.value);
     }
+    if (reminderDateTime.present) {
+      map['reminder_date_time'] = Variable<DateTime>(reminderDateTime.value);
+    }
+    if (reminderMessage.present) {
+      map['reminder_message'] = Variable<String>(reminderMessage.value);
+    }
+    if (isReminderActive.present) {
+      map['is_reminder_active'] = Variable<bool>(isReminderActive.value);
+    }
     return map;
   }
 
@@ -999,7 +1171,10 @@ class TableMapCompanion extends UpdateCompanion<TableMapData> {
           ..write('name: $name, ')
           ..write('address: $address, ')
           ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude')
+          ..write('longitude: $longitude, ')
+          ..write('reminderDateTime: $reminderDateTime, ')
+          ..write('reminderMessage: $reminderMessage, ')
+          ..write('isReminderActive: $isReminderActive')
           ..write(')'))
         .toString();
   }
@@ -1703,6 +1878,9 @@ typedef $$TableMapTableCreateCompanionBuilder =
       required String address,
       required double latitude,
       required double longitude,
+      Value<DateTime?> reminderDateTime,
+      Value<String?> reminderMessage,
+      Value<bool> isReminderActive,
     });
 typedef $$TableMapTableUpdateCompanionBuilder =
     TableMapCompanion Function({
@@ -1711,6 +1889,9 @@ typedef $$TableMapTableUpdateCompanionBuilder =
       Value<String> address,
       Value<double> latitude,
       Value<double> longitude,
+      Value<DateTime?> reminderDateTime,
+      Value<String?> reminderMessage,
+      Value<bool> isReminderActive,
     });
 
 class $$TableMapTableFilterComposer
@@ -1744,6 +1925,21 @@ class $$TableMapTableFilterComposer
 
   ColumnFilters<double> get longitude => $composableBuilder(
     column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reminderDateTime => $composableBuilder(
+    column: $table.reminderDateTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reminderMessage => $composableBuilder(
+    column: $table.reminderMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isReminderActive => $composableBuilder(
+    column: $table.isReminderActive,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1781,6 +1977,21 @@ class $$TableMapTableOrderingComposer
     column: $table.longitude,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get reminderDateTime => $composableBuilder(
+    column: $table.reminderDateTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reminderMessage => $composableBuilder(
+    column: $table.reminderMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isReminderActive => $composableBuilder(
+    column: $table.isReminderActive,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TableMapTableAnnotationComposer
@@ -1806,6 +2017,21 @@ class $$TableMapTableAnnotationComposer
 
   GeneratedColumn<double> get longitude =>
       $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get reminderDateTime => $composableBuilder(
+    column: $table.reminderDateTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get reminderMessage => $composableBuilder(
+    column: $table.reminderMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isReminderActive => $composableBuilder(
+    column: $table.isReminderActive,
+    builder: (column) => column,
+  );
 }
 
 class $$TableMapTableTableManager
@@ -1844,12 +2070,18 @@ class $$TableMapTableTableManager
                 Value<String> address = const Value.absent(),
                 Value<double> latitude = const Value.absent(),
                 Value<double> longitude = const Value.absent(),
+                Value<DateTime?> reminderDateTime = const Value.absent(),
+                Value<String?> reminderMessage = const Value.absent(),
+                Value<bool> isReminderActive = const Value.absent(),
               }) => TableMapCompanion(
                 id: id,
                 name: name,
                 address: address,
                 latitude: latitude,
                 longitude: longitude,
+                reminderDateTime: reminderDateTime,
+                reminderMessage: reminderMessage,
+                isReminderActive: isReminderActive,
               ),
           createCompanionCallback:
               ({
@@ -1858,12 +2090,18 @@ class $$TableMapTableTableManager
                 required String address,
                 required double latitude,
                 required double longitude,
+                Value<DateTime?> reminderDateTime = const Value.absent(),
+                Value<String?> reminderMessage = const Value.absent(),
+                Value<bool> isReminderActive = const Value.absent(),
               }) => TableMapCompanion.insert(
                 id: id,
                 name: name,
                 address: address,
                 latitude: latitude,
                 longitude: longitude,
+                reminderDateTime: reminderDateTime,
+                reminderMessage: reminderMessage,
+                isReminderActive: isReminderActive,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

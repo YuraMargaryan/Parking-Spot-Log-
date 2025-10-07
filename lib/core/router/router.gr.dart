@@ -11,7 +11,7 @@
 part of 'router.dart';
 
 /// generated route for
-/// [AppInitializer]
+/// [AppInitializerScreen]
 class AppInitializerRoute extends PageRouteInfo<void> {
   const AppInitializerRoute({List<PageRouteInfo>? children})
     : super(AppInitializerRoute.name, initialChildren: children);
@@ -21,7 +21,7 @@ class AppInitializerRoute extends PageRouteInfo<void> {
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const AppInitializer();
+      return const AppInitializerScreen();
     },
   );
 }

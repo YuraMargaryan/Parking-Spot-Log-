@@ -5,14 +5,14 @@ import 'package:parking_spot_log/home/home_screen.dart';
 import 'package:parking_spot_log/screen/onbording/onbording_screen.dart';
 
 @RoutePage()
-class AppInitializer extends StatefulWidget {
-  const AppInitializer({super.key});
+class AppInitializerScreen extends StatefulWidget {
+  const AppInitializerScreen({super.key});
 
   @override
-  State<AppInitializer> createState() => _AppInitializerState();
+  State<AppInitializerScreen> createState() => _AppInitializerState();
 }
 
-class _AppInitializerState extends State<AppInitializer> {
+class _AppInitializerState extends State<AppInitializerScreen> {
   bool _isLoading = true;
   bool _showOnboarding = false;
 
@@ -58,9 +58,11 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    return _showOnboarding
-        ? OnboardingScreen(onCompleted: _onOnboardingCompleted)
-        : const HomeScreen();
+    if (_showOnboarding) {
+      return OnboardingScreen(onCompleted: _onOnboardingCompleted);
+    } else {
+      return const HomeScreen();
+    }
   }
 }
 
